@@ -16,6 +16,12 @@
             if (data.message === 'Habit completed') {
                 button.classList.remove('bg-gray-500');
                 button.classList.add('bg-green-500');
+                // Trigger confetti animation
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
             } else {
                 button.classList.remove('bg-green-500');
                 button.classList.add('bg-gray-500');
@@ -23,43 +29,151 @@
         });
     }
 }">
-    <div class="mb-8 flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">Your Habits</h1>
-        <a href="{{ url_for('habits.new_habit') }}" 
-           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Add New Habit
-        </a>
+    <!-- Dashboard Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-4xl font-display font-bold text-gray-800 dark:text-white">Your Habits</h1>
+            <a href="{{ url_for('habits.new_habit') }}" 
+               class="bg-gradient-to-r from-primary-500 to-primary-600 hover:shadow-lg text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add New Habit
+            </a>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Total Habits</p>
+                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white">{{ habits|length }}</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Active Streaks</p>
+                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white">
+                            {% set active_streaks = 0 %}
+                            {% for habit in habits %}
+                                {% if habit.get_streak() > 0 %}
+                                    {% set active_streaks = active_streaks + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ active_streaks }}
+                        </h3>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Completion Rate</p>
+                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white">
+                            {% set total_completions = 0 %}
+                            {% for habit in habits %}
+                                {% set total_completions = total_completions + habit.completions|length %}
+                            {% endfor %}
+                            {% set total_possible = habits|length * 7 %}
+                            {{ ((total_completions / total_possible * 100) if total_possible > 0 else 0)|round|int }}%
+                        </h3>
+                    </div>
+                    <div class="w-12 h-12 bg-accent-100 dark:bg-accent-900 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-accent-600 dark:text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     {% if not habits %}
-    <div class="bg-white rounded-lg shadow p-6 text-center">
-        <p class="text-gray-600">You haven't created any habits yet.</p>
+    <div class="glass-effect rounded-xl p-12 text-center">
+        <lottie-player
+            src="https://assets8.lottiefiles.com/packages/lf20_vvwb0fkz.json"
+            background="transparent"
+            speed="1"
+            style="width: 300px; height: 300px; margin: 0 auto;"
+            loop
+            autoplay>
+        </lottie-player>
+        <p class="text-gray-600 dark:text-gray-400 text-lg mt-4">You haven't created any habits yet.</p>
         <a href="{{ url_for('habits.new_habit') }}" 
-           class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+           class="mt-6 inline-block bg-gradient-to-r from-primary-500 to-primary-600 hover:shadow-lg text-white font-bold py-3 px-6 rounded-lg transition-all duration-200">
             Create Your First Habit
         </a>
     </div>
     {% else %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for habit in habits %}
-        <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="glass-effect rounded-xl overflow-hidden transform hover:scale-105 transition-all duration-200">
             <div class="p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ habit.name }}</h3>
-                <p class="text-gray-600 mb-4">{{ habit.description }}</p>
-                <div class="flex justify-between items-center">
-                    <div>
-                        <span class="text-sm text-gray-500">Current Streak:</span>
-                        <span id="streak-{{ habit.id }}" class="ml-1 font-bold text-blue-500">
+                <div class="flex items-start justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">{{ habit.name }}</h3>
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Streak:</span>
+                        <span id="streak-{{ habit.id }}" class="ml-1 font-bold text-primary-600 dark:text-primary-400">
                             {{ habit.get_streak() }}
                         </span>
                     </div>
-                    <button 
-                        id="complete-{{ habit.id }}"
-                        @click="completeHabit({{ habit.id }})"
-                        class="px-4 py-2 rounded text-white font-semibold {% if habit.completions and habit.completions[-1].date == today %}bg-green-500{% else %}bg-gray-500{% endif %} hover:opacity-90">
-                        Complete
-                    </button>
                 </div>
+                <p class="text-gray-600 dark:text-gray-300 mb-6">{{ habit.description }}</p>
+                
+                <!-- Progress Ring -->
+                <div class="relative h-32 w-32 mx-auto mb-6">
+                    <svg class="h-full w-full" viewBox="0 0 36 36">
+                        <!-- Background circle -->
+                        <circle cx="18" cy="18" r="15" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="3"></circle>
+                        
+                        <!-- Progress circle -->
+                        <circle cx="18" cy="18" r="15" 
+                            fill="none" 
+                            stroke-dasharray="2 * Math.PI * 15"
+                            :stroke-dashoffset="2 * Math.PI * 15 * (1 - {{ habit.get_streak() }}/7)"
+                            stroke-linecap="round"
+                            class="stroke-primary-500 transform -rotate-90 origin-center transition-all duration-1000"
+                            stroke-width="3">
+                        </circle>
+                        
+                        <!-- Percentage text -->
+                        <text x="18" y="18" text-anchor="middle" dominant-baseline="middle" 
+                            class="fill-gray-800 dark:fill-gray-200 font-bold text-lg">
+                            <tspan x="18" y="18">{{ habit.get_streak() }}/7</tspan>
+                        </text>
+                    </svg>
+                </div>
+
+                <button 
+                    id="complete-{{ habit.id }}"
+                    @click="completeHabit({{ habit.id }})"
+                    class="w-full px-4 py-3 rounded-lg text-white font-semibold transition-all duration-200 {% if habit.completions and habit.completions[-1].date == today %}bg-green-500 hover:bg-green-600{% else %}bg-primary-500 hover:bg-primary-600{% endif %} shadow-lg hover:shadow-xl">
+                    {% if habit.completions and habit.completions[-1].date == today %}
+                        <span class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Completed
+                        </span>
+                    {% else %}
+                        Complete
+                    {% endif %}
+                </button>
             </div>
         </div>
         {% endfor %}
